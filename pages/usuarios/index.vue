@@ -57,11 +57,15 @@
         </b-button>
       </template>
     </b-table>
+
+    <alerts :message="message" />
   </b-container>
 </template>
 <script>
+import alerts from "../../components/alerts.vue";
 export default {
-    // Información a utilizar
+  components: { alerts },
+  // Información a utilizar
   data() {
     return {
       headers: ["correo", "nombre", "universidad", "show_details"],
@@ -69,6 +73,7 @@ export default {
       user: {},
       universidades: ["Universidad de Medellín", "Universidad de Antioquia"],
       editing: false,
+      message: "",
     };
   },
   // Método antes de que cargue la página
@@ -94,7 +99,7 @@ export default {
 
       const url = "http://localhost:3001/api/v1/usuarios";
       let { data } = await this.$axios.post(url, this.user);
-      console.log(data);
+      this.message = data.message;
       this.loadUsers();
     },
     async updateUser(event) {
@@ -103,6 +108,8 @@ export default {
       const url = `http://localhost:3001/api/v1/usuarios/${this.user._id}`;
       let { data } = await this.$axios.put(url, this.user);
       console.log(data);
+      this.$swal.fire("Actualizado!", data.message, "success");
+      //this.message = data.message; Para el componente de alerta personalizado
       this.resetForm();
       this.loadUsers();
     },
@@ -111,9 +118,25 @@ export default {
       this.editing = true;
     },
     async deleteUser({ item }) {
-      const url = `http://localhost:3001/api/v1/usuarios/${this.item._id}`;
-      let { data } = await this.$axios.delete(url);
-      this.loadUsers();
+      this.$swal
+        .fire({
+          title: "Está seguro de eliminar?",
+          text: "No se puede recuperar después de la eliminacoón",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Sí, eliminar!",
+          cancelButtonText: "Cancelar",
+        })
+        .then(async (result) => {
+          if (result.value) {
+            const url = `http://localhost:3001/api/v1/usuarios/${item._id}`;
+            let { data } = await this.$axios.delete(url);
+            this.loadUsers();
+            this.$swal.fire("Eliminado!", data.message, "success");
+          }
+        });
     },
     resetForm() {
       // Reset our form values
