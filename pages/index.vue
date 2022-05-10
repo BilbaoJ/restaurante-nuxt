@@ -1,9 +1,13 @@
 <template>
-  <Tutorial/>
-</template>
+  <div>
+    RESTAURANTE DLL WEB UDEM
 
-<script>
-export default {
-  name: 'IndexPage'
-}
-</script>
+    <NuxtLink to="/login">
+    Iniciar sesión
+    </NuxtLink>
+
+    <NuxtLink to="/login">
+    Registro
+    </NuxtLink>
+  </div>
+</template>

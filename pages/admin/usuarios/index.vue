@@ -1,6 +1,6 @@
 <template>
   <b-container>
-    <h2>USUARIO</h2>
+    <h2>USUARIOS</h2>
     <!-- Creación de formulario -->
     <b-form @submit="createUser" @reset="resetForm">
       <b-form-group
@@ -47,7 +47,7 @@
     </b-form>
 
     <b-table striped hover :items="users" :fields="headers">
-      <template #cell(show_details)="row">
+      <template #cell(opciones)="row">
         <b-button size="sm" @click="loadUser(row)" class="mr-2">
           Modificar usuario
         </b-button>
@@ -62,31 +62,38 @@
   </b-container>
 </template>
 <script>
-import alerts from "../../components/alerts.vue";
+import alerts from "../../../components/alerts.vue";
 export default {
+  layout:"admin",
   components: { alerts },
   // Información a utilizar
   data() {
     return {
-      headers: ["correo", "nombre", "universidad", "show_details"],
+      headers: ["correo", "nombre", "universidad", "opciones"],
       users: [],
       user: {},
       universidades: ["Universidad de Medellín", "Universidad de Antioquia"],
       editing: false,
       message: "",
+      opcionesAxios: null,
     };
   },
   // Método antes de que cargue la página
   beforeMount() {
+    this.loadHeader();
     this.loadUsers();
   },
   //Métodos a usar
   methods: {
+    loadHeader() {
+      let token = localStorage.getItem("token");
+      this.opcionesAxios = {headers:{token}};
+    },
     async loadUsers() {
       //Cargar usuarios de la base de datos
       //para llamar una dependencia inyectada $nombrePaquete
       const url = "http://localhost:3001/api/v1/usuarios";
-      let { data } = await this.$axios.get(url);
+      let { data } = await this.$axios.get(url, this.opcionesAxios);
       console.log(data);
       if (data.ok) {
         this.users = data.info;
@@ -98,7 +105,7 @@ export default {
       event.preventDefault();
 
       const url = "http://localhost:3001/api/v1/usuarios";
-      let { data } = await this.$axios.post(url, this.user);
+      let { data } = await this.$axios.post(url, this.user, this.opcionesAxios);
       this.message = data.message;
       this.loadUsers();
     },
@@ -106,7 +113,7 @@ export default {
       event.preventDefault();
 
       const url = `http://localhost:3001/api/v1/usuarios/${this.user._id}`;
-      let { data } = await this.$axios.put(url, this.user);
+      let { data } = await this.$axios.put(url, this.user, this.opcionesAxios);
       console.log(data);
       this.$swal.fire("Actualizado!", data.message, "success");
       //this.message = data.message; Para el componente de alerta personalizado
@@ -132,7 +139,7 @@ export default {
         .then(async (result) => {
           if (result.value) {
             const url = `http://localhost:3001/api/v1/usuarios/${item._id}`;
-            let { data } = await this.$axios.delete(url);
+            let { data } = await this.$axios.delete(url, this.opcionesAxios);
             this.loadUsers();
             this.$swal.fire("Eliminado!", data.message, "success");
           }
